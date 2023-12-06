@@ -1,26 +1,23 @@
 import * as React from "react";
 import PropTypes from "prop-types";
-import { alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Checkbox from "@mui/material/Checkbox";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
-import DeleteIcon from "@mui/icons-material/Delete";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import { visuallyHidden } from "@mui/utils";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+
+import "./TableComponent.css";
+import { Fade, MenuItem, Pagination, Select, Stack, Tooltip } from "@mui/material";
+import OverflowTip from "./OverflowTooltip";
 
 function createData(name, calories, fat, carbs, protein) {
   return {
@@ -32,24 +29,7 @@ function createData(name, calories, fat, carbs, protein) {
   };
 }
 
-const rows = [
-  createData("Cupcake", 305, 3.7, 67, 4.3),
-  createData("Donut", 452, 25.0, 51, 4.9),
-  createData("Eclair", 262, 16.0, 24, 6.0),
-  createData("Frozen yoghurt", 159, 6.0, 24, 4.0),
-  createData("Gingerbread", 356, 16.0, 49, 3.9),
-  createData("Honeycomb", 408, 3.2, 87, 6.5),
-  createData("Ice cream sandwich", 237, 9.0, 37, 4.3),
-  createData("Jelly Bean", 375, 0.0, 94, 0.0),
-  createData("KitKat", 518, 26.0, 65, 7.0),
-  createData("Lollipop", 392, 0.2, 98, 0.0),
-  createData("Marshmallow", 318, 0, 81, 2.0),
-  createData("Nougat", 360, 19.0, 9, 37.0),
-  createData("Oreo", 437, 18.0, 63, 4.0),
-];
-
 function descendingComparator(a, b, orderBy) {
-  //   console.log("a", a, "b", b, "orderBy", orderBy);
   if (b[orderBy].toLowerCase() < a[orderBy].toLowerCase()) {
     return -1;
   }
@@ -60,7 +40,6 @@ function descendingComparator(a, b, orderBy) {
 }
 
 function getComparator(order, orderBy) {
-  //   console.log(order, orderBy);
   return order === "desc"
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
@@ -69,7 +48,6 @@ function getComparator(order, orderBy) {
 // This method is created for cross-browser compatibility, if you don't
 // need to support IE11, you can use Array.prototype.sort() directly
 function stableSort(array, comparator) {
-  //   console.log("comparator", comparator);
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
@@ -80,39 +58,6 @@ function stableSort(array, comparator) {
   });
   return stabilizedThis.map((el) => el[0]);
 }
-
-const headCells = [
-  {
-    id: "name",
-    numeric: false,
-    disablePadding: true,
-    label: "Dessert (100g serving)",
-  },
-  {
-    id: "calories",
-    numeric: true,
-    disablePadding: false,
-    label: "Calories",
-  },
-  {
-    id: "fat",
-    numeric: true,
-    disablePadding: false,
-    label: "Fat (g)",
-  },
-  {
-    id: "carbs",
-    numeric: true,
-    disablePadding: false,
-    label: "Carbs (g)",
-  },
-  {
-    id: "protein",
-    numeric: true,
-    disablePadding: false,
-    label: "Protein (g)",
-  },
-];
 
 function EnhancedTableHead(props) {
   const {
@@ -131,7 +76,7 @@ function EnhancedTableHead(props) {
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox">
+        <TableCell padding="checkbox" className="table-checkbox">
           <Checkbox
             color="primary"
             indeterminate={numSelected > 0 && numSelected < rowCount}
@@ -140,6 +85,7 @@ function EnhancedTableHead(props) {
             inputProps={{
               "aria-label": "select all desserts",
             }}
+            className="checkbox-mui"
           />
         </TableCell>
         {tableHead.map((headCell) => (
@@ -148,12 +94,14 @@ function EnhancedTableHead(props) {
             align="left"
             padding={headCell.disablePadding ? "none" : "normal"}
             sortDirection={orderBy === headCell.id ? order : false}
+            className="table-header"
           >
-            {/* {console.log("order", order, "orderBy", orderBy)} */}
             <TableSortLabel
               active={orderBy === headCell.id}
+              IconComponent={ArrowDropUpIcon}
               direction={orderBy === headCell.id ? order : "asc"}
               onClick={createSortHandler(headCell.id)}
+              className="sorted-blk"
             >
               {headCell.label}
               {orderBy === headCell.id ? (
@@ -178,65 +126,7 @@ EnhancedTableHead.propTypes = {
   rowCount: PropTypes.number.isRequired,
 };
 
-const EnhancedTableToolbar = (props) => {
-  const { numSelected } = props;
-
-  return (
-    <Toolbar
-      sx={{
-        pl: { sm: 2 },
-        pr: { xs: 1, sm: 1 },
-        ...(numSelected > 0 && {
-          bgcolor: (theme) =>
-            alpha(
-              theme.palette.primary.main,
-              theme.palette.action.activatedOpacity
-            ),
-        }),
-      }}
-    >
-      {numSelected > 0 ? (
-        <Typography
-          sx={{ flex: "1 1 100%" }}
-          color="inherit"
-          variant="subtitle1"
-          component="div"
-        >
-          {numSelected} selected
-        </Typography>
-      ) : (
-        <Typography
-          sx={{ flex: "1 1 100%" }}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          Nutrition
-        </Typography>
-      )}
-
-      {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
-      )}
-    </Toolbar>
-  );
-};
-
-EnhancedTableToolbar.propTypes = {
-  numSelected: PropTypes.number.isRequired,
-};
-
-export default function EnhancedTable({
+export default function TableComponent({
   tableHead,
   records,
   page,
@@ -245,17 +135,17 @@ export default function EnhancedTable({
   handleChangePage1,
   totalRecords,
   orderBy,
-  setOrderBy
+  setOrderBy,
+  icons,
+  onClickVisibilityIconHandler1,
+  onClickDeleteIconHandler1,
+  selected,
+  setSelected,
 }) {
-//   console.log("records",records)
+  //   console.log("records",records)
   const [order, setOrder] = React.useState("asc");
-//   const [orderBy, setOrderBy] = React.useState("calories");
-  const [selected, setSelected] = React.useState([]);
-  //   const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(false);
-  //   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const handleRequestSort = (event, property) => {
+  const handleRequestSort = (_event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
@@ -270,7 +160,7 @@ export default function EnhancedTable({
     setSelected([]);
   };
 
-  const handleClick = (event, id) => {
+  const handleClick = (_event, id) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
 
@@ -286,126 +176,179 @@ export default function EnhancedTable({
         selected.slice(selectedIndex + 1)
       );
     }
-    console.log('new Selected',newSelected)
     setSelected(newSelected);
-
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_event, newPage) => {
+    // console.log("page",event.target.value)
     handleChangePage1(newPage);
-    // setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
     handleChangeRowsPerPage1(event);
-    // setRowsPerPage(parseInt(event.target.value, 10));
-    // setPage(0);
   };
-
-  const handleChangeDense = (event) => {
-    setDense(event.target.checked);
+  const onClickVisibilityIconHandler = (id) => {
+    // console.log("Inside on click handler",e.target)
+    onClickVisibilityIconHandler1(id);
   };
-
+  const onClickDeleteIconHandler = (id) => {
+    onClickDeleteIconHandler1(id);
+  };
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
   // Avoid a layout jump when reaching the last page with empty records.
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - totalRecords) : 0;
-  // console.log("Empty Rows",emptyRows)
+    page > 0 ? Math.max(0, page * rowsPerPage - totalRecords) : 0;
+  // console.log("selected rows",selected)
   return (
-    <Box sx={{ width: "100%" }}>
-      <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar numSelected={selected.length} />
-        <TableContainer>
-          <Table
-            sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitle"
-            size={dense ? "small" : "medium"}
-          >
-            <EnhancedTableHead
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              tableHead={tableHead}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={records.length}
-            />
-            <TableBody>
-              {/* if you don't need to support IE11, you can replace the `stableSort` call with:
+    <>
+      <Box sx={{ width: "100%" }} className="table-blk">
+        <Paper sx={{ width: "100%", mb: 2 }}>
+          <TableContainer>
+            <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
+              <EnhancedTableHead
+                numSelected={selected.length}
+                order={order}
+                orderBy={orderBy}
+                tableHead={tableHead}
+                onSelectAllClick={handleSelectAllClick}
+                onRequestSort={handleRequestSort}
+                rowCount={records.length}
+              />
+              <TableBody>
+                {/* if you don't need to support IE11, you can replace the `stableSort` call with:
                  records.slice().sort(getComparator(order, orderBy)) */}
-              {stableSort(records, getComparator(order, orderBy))
-                // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => {
-                  // console.log("row", row);
-                  const isItemSelected = isSelected(row.id);
-                  const labelId = `enhanced-table-checkbox-${index}`;
+                {stableSort(records, getComparator(order, orderBy)).map(
+                  (row, index) => {
+                    const isItemSelected = isSelected(row.id);
+                    const labelId = `enhanced-table-checkbox-${index}`;
 
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.id)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.emailId}
-                      selected={isItemSelected}
-                    >
-                      <TableCell padding="checkbox">
-                        <Checkbox
-                        className='table-checkbox'
-                          color="primary"
-                          checked={isItemSelected}
-                          inputProps={{
-                            "aria-labelledby": labelId,
-                          }}
-                        />
-                      </TableCell>
-                      {Object.keys(row).map((cell, id) => {
-                        // console.log("id",id,"cell", cell,"value",row[cell])
-                        return (cell !== 'id' && <TableCell key={cell}>{row[cell]}</TableCell>)
-                      })}
-                      <TableCell
-                      component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
+                    return (
+                      <TableRow
+                        hover
+                        // onClick={(event) => handleClick(event, row.id)}
+                        role="checkbox"
+                        aria-checked={isItemSelected}
+                        tabIndex={-1}
+                        key={row.emailId}
+                        selected={isItemSelected}
                       >
-                        {/* {row.operationalMember} */}
-                      </TableCell>
-                      {/* <TableCell align="right">{row.calories}</TableCell>
-                      <TableCell align="right">{row.fat}</TableCell>
-                      <TableCell align="right">{row.carbs}</TableCell>
-                      <TableCell align="right">{row.protein}</TableCell> */}
-                    </TableRow>
-                  );
-                })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: (dense ? 33 : 53) * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 20, 25]}
-          component="div"
-          count={totalRecords}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      />
-    </Box>
+                        <TableCell padding="checkbox">
+                          <Checkbox
+                            className="table-checkbox"
+                            color="primary"
+                            onClick={(e) => handleClick(e, row.id)}
+                            checked={isItemSelected}
+                            inputProps={{
+                              "aria-labelledby": labelId,
+                            }}
+                          />
+                        </TableCell>
+                        {Object.keys(row).map((cell, _id) => {
+                          if (cell !== "id" && cell !== "status") {
+                            console.log("rowCell", row[cell], typeof row[cell]);
+                            return row[cell].length <= 10 ? (
+                              <TableCell key={cell}>{row[cell]}</TableCell>
+                            ) : (
+                              <Tooltip
+                                key={cell}
+                                placement="bottom-start"
+                                enterDelay={1000}
+                                title={row[cell]}
+                              >
+                                <TableCell key={cell}>{`${row[cell].slice(
+                                  0,
+                                  30
+                                )}...`}</TableCell>
+                              </Tooltip>
+                            );
+                          } else if (cell === "status") {
+                            return (
+                              <TableCell
+                                className={`button-style ${
+                                  row[cell] === "active" &&
+                                  "button-style-success"
+                                }`}
+                                key={cell}
+                              >
+                                <span>{row[cell]}</span>
+                              </TableCell>
+                            );
+                          }
+                        })}
+                        <TableCell>
+                          {icons.includes("visibility") && (
+                            <span className="icon">
+                              <VisibilityOutlinedIcon
+                                onClick={() =>
+                                  onClickVisibilityIconHandler(row.id)
+                                }
+                              />
+                            </span>
+                          )}
+                          {icons.includes("delete") && (
+                            <span className="icon">
+                              <DeleteIcon
+                                onClick={() => onClickDeleteIconHandler(row.id)}
+                              />
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                )}
+                {emptyRows > 0 && (
+                  <TableRow
+                    style={{
+                      height: 69 * emptyRows,
+                    }}
+                  >
+                    <TableCell colSpan={6} />
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Box>
+      <div className="table-footer flex-between">
+        <div className="table-footer-left">
+          <div className="per-page-blk">
+            <span className="per-page-txt">Records</span>
+            <div className="per-page-dropdown">
+              <div className="per-page-select-field">
+                <Select value={rowsPerPage} onChange={handleChangeRowsPerPage}>
+                  <MenuItem value="5" selected>
+                    05
+                  </MenuItem>
+                  <MenuItem value="10">10</MenuItem>
+                  <MenuItem value="20">20</MenuItem>
+                  <MenuItem value="25">25</MenuItem>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <div className="show-entries-txt">
+            Showing {(page - 1) * rowsPerPage + 1} to{" "}
+            {page * rowsPerPage <= totalRecords
+              ? page * rowsPerPage
+              : totalRecords}{" "}
+            of {totalRecords} Entries
+          </div>
+        </div>
+        <div className="table-footer-right">
+          <Stack spacing={2} className="pagination-blk">
+            <Pagination
+              page={page}
+              count={Math.ceil(totalRecords / rowsPerPage)}
+              onChange={(event, value) => handleChangePage(event, value)}
+              variant="outlined"
+              shape="rounded"
+            />
+          </Stack>
+        </div>
+      </div>
+    </>
   );
 }

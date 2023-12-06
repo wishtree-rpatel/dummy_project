@@ -657,3 +657,6 @@ input[type=checkbox]:checked:before {
 .radio-btn svg:first-child path{color: #707070 ;}
 .radio-btn label{margin-right: 30px;}
 .checkbox-mui{color: #0082C9;}
+
+
+.table-blk td {font-family: 'ProximaNova-Regular';}

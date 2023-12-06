@@ -1,47 +1,71 @@
 import { ErrorSharp } from "@mui/icons-material";
-import { FormControlLabel, Radio, RadioGroup, TextField } from "@mui/material";
+import {
+  Autocomplete,
+  FormControlLabel,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  Select,
+  TextField,
+} from "@mui/material";
+import { Box } from "@mui/system";
 import { getValue } from "@testing-library/user-event/dist/utils";
 import React from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import Dropdown from "./Dropdown";
+import Input from "./Input";
 
 const myHelper = {
   memberCompany: {
     required: "Enter Member Company",
     maxLength: "max char limit exceed",
+    pattern: "Invalid format",
   },
-  email:{
+  email: {
     required: "Enter EmailId",
-    maxLength: "max char limit exceed"
+    maxLength: "max char limit exceed",
   },
-  pwd:{
-    required: "Enter Password",
-    minLength: "min 6 char",
-    maxLength: "max 15 char",
-    pattern: "Invalid format"
-  },
-  cnfPwd:{
+  pwd: {
     required: "Enter Password",
     minLength: "min 6 char",
     maxLength: "max 15 char",
     pattern: "Invalid format",
-    validate: "password mismatch"
-  }
+  },
+  cnfPwd: {
+    required: "Enter Password",
+    minLength: "min 6 char",
+    maxLength: "max 15 char",
+    pattern: "Invalid format",
+    validate: "password mismatch",
+  },
+  category: {
+    required: "Required field",
+  },
 };
 
 const MuiForm = () => {
-  const { control, watch, handleSubmit } = useForm({
+  const [city, setCity] = useState("")
+  const { control, watch, setValue, setError, handleSubmit } = useForm({
     defaultValues: {
       memberCompany: "",
       email: "",
       pwd: "",
       cnfPwd: "",
       companyType: "external",
+      category: "",
+      age: 10,
+      code: "",
+      countryCode: "",
     },
   });
+  const onCityChangeHandler = (e) => {setCity(e.target.value)}
   const onSubmit = (data) => {
+    console.log("category: ", data.category);
     console.log("onSubmit");
     console.log(data);
   };
+  console.log("city: ",city)
   return (
     <div className="page-wrapper">
       <section>
@@ -54,7 +78,18 @@ const MuiForm = () => {
                     <label htmlFor="membercompany">
                       Member Company <span className="mandatory">*</span>
                     </label>
-                    <Controller
+                    <Input
+                      control={control}
+                      name="memberCompany"
+                      myHelper={myHelper}
+                      rules={{
+                        required: true,
+                        maxLength: 50,
+                        pattern: /^[A-Za-z]+[A-Za-z ]*$/,
+                      }}
+                      placeholder="Enter member company"
+                    />
+                    {/* <Controller
                       name="memberCompany"
                       rules={{ required: true, maxLength: 50 }}
                       control={control}
@@ -71,7 +106,7 @@ const MuiForm = () => {
                           variant="outlined"
                         />
                       )}
-                    />
+                    /> */}
                   </div>
                 </div>
                 <div className="card-form-field">
@@ -79,7 +114,16 @@ const MuiForm = () => {
                     <label htmlFor="email">
                       Email <span className="mandatory">*</span>
                     </label>
-                    <Controller
+                    <Input
+                      control={control}
+                      name="email"
+                      myHelper={myHelper}
+                      rules={{ required: true, maxLength: 50 }}
+                      placeholder="Enter Email"
+                      onBlur={(e) => setValue("email", e.target.value.trim())}
+                    />
+
+                    {/* <Controller
                       name="email"
                       rules={{required : true , maxLength:  50 }}
                       control={control}
@@ -95,7 +139,7 @@ const MuiForm = () => {
                           variant="outlined"
                         />
                       )}
-                    />
+                    /> */}
                   </div>
                 </div>
                 <div className="card-form-field">
@@ -103,20 +147,17 @@ const MuiForm = () => {
                     <label htmlFor="pwd">
                       Password <span className="mandatory">*</span>
                     </label>
-                    <Controller
-                      name="pwd"
-                      rules={{required: true, maxLength: 15, minLength: 2, pattern: /^(?=.*[A-Z])[A-Za-z0-9]+$/}}
+                    <Input
                       control={control}
-                      render={({ field, fieldState: {error} }) => (
-                        <TextField
-                          {...field}
-                          className={`input-field ${error && 'input-error'}`}
-                          id="outlined-basic"
-                          placeholder="Password"
-                          variant="outlined"
-                          helperText={error ? myHelper.pwd[error.type]: " "}
-                        />
-                      )}
+                      name="pwd"
+                      myHelper={myHelper}
+                      rules={{
+                        required: true,
+                        maxLength: 15,
+                        minLength: 2,
+                        pattern: /^(?=.*[A-Z])[A-Za-z0-9]+$/,
+                      }}
+                      placeholder="Enter Password"
                     />
                   </div>
                 </div>
@@ -125,7 +166,24 @@ const MuiForm = () => {
                     <label htmlFor="cnfPwd">
                       Confirm Password <span className="mandatory">*</span>
                     </label>
-                    <Controller
+                    <Input
+                      control={control}
+                      name="cnfPwd"
+                      myHelper={myHelper}
+                      placeholder="Enter Confirm Password"
+                      rules={{
+                        required: true,
+                        maxLength: 15,
+                        minLength: 2,
+                        pattern: /^(?=.*[A-Z])[A-Za-z0-9]+$/,
+                        validate: (value) => {
+                          if (value !== watch("pwd")) {
+                            return "password mismatch";
+                          }
+                        },
+                      }}
+                    />
+                    {/* <Controller
                       name="cnfPwd"
                       rules={{required: true, maxLength: 15, minLength: 2, pattern: /^(?=.*[A-Z])[A-Za-z0-9]+$/, validate: (value) => {
                         if(value !== watch('pwd')){
@@ -144,6 +202,21 @@ const MuiForm = () => {
                           helperText={error ? myHelper.cnfPwd[error.type] : " "}
                         />
                       )}
+                    /> */}
+                  </div>
+                </div>
+                <div className="card-form-field">
+                  <div className="form-group dropdown-field">
+                    <label htmlFor="category">
+                      Category <span className="mandatory">*</span>
+                    </label>
+                    <Dropdown
+                      control={control}
+                      rules={{ required: true }}
+                      myHelper={myHelper}
+                      name="category"
+                      placeholder="Select Category"
+                      options={["Manufacrer", "FMCG", "Retailar", "Nothing"]}
                     />
                   </div>
                 </div>
@@ -177,6 +250,102 @@ const MuiForm = () => {
                         )}
                       />
                     </div>
+                  </div>
+                </div>
+                {/* <div className="card-form-field">
+                  <div className="form-group">
+                    <Autocomplete
+                      sx={{ width: 200 }}
+                      options={["+91", "+92", "+98", "+404", "+95"]}
+                      name="countryCode"
+                      autoHighlight
+                      placeholder="Select country code"
+                      getOptionLabel={(country) => country}
+                      renderOption={(props, option) => (
+                        <Box
+                          component="li"
+                          sx={{
+                            "& > img": {
+                              mr: 2,
+                              flexShrink: 0,
+                            },
+                          }}
+                          {...props}
+                        >
+                          {option}
+                        </Box>
+                      )}
+                      renderInput={(params) => (
+                        <Controller
+                          control={control}
+                          // name="countryCode"
+                          render={({ field, fieldState: { error } }) => (
+                            <TextField
+                              {...field}
+                              {...params}
+                              inputProps={{
+                                ...params.inputProps,
+                                // autoComplete: "", // disable autocomplete and autofill
+                              }}
+                              autoComplete={false}
+                              placeholder={"Select country code"}
+                              // helperText={
+                              //   error.countryCode
+                              //     ? error?.countryCode.message
+                              //     : " "
+                              // }
+                            />
+                          )}
+                        />
+                      )}
+                    />
+                  </div>
+                </div> */}
+                <div className="card-form-field">
+                  <div className="form-group">
+                    <Controller
+                      control={control}
+                      name="code"
+                      render={({ field }) => (
+                        <Autocomplete
+                          {...field}
+                          disablePortal
+                          autoComplete
+                          freeSolo
+                          id="combo-box-demo"
+                          options={["+91", "+98", "+45", "+404", "+123", "+93"]}
+                          // getOptionLabel={(option) => option}
+                          sx={{ width: 300 }}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              InputProps={{
+                                ...params.InputProps,
+                                // type: 'search'
+                              }}
+                              placeholder="Select code"
+                            />
+                          )}
+                          // onChange={(e) => console.log("Value", e.target.value)}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="card-form-field">
+                  <div className="form-group">
+                    <Autocomplete
+                      
+                      id="free-solo-demo"
+                      freeSolo
+                      options={["Paris","London","New york"]}
+                      renderInput={(params) => (
+                        <>
+                        {/* {console.log("params: ",params)} */}
+                        <TextField  {...params} name="city" value={city} onChange={onCityChangeHandler}/>
+                        </>
+                      )}
+                    />
                   </div>
                 </div>
                 <div className="form-btn flex-between add-members-btn">
